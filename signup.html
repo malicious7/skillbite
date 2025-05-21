@@ -6,36 +6,130 @@
     <title>Sign Up | SkillBite</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(120deg, #6c47ff 0%, #00e6d8 100%);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .auth-page {
+            background: rgba(255,255,255,0.85);
+            box-shadow: 0 8px 32px 0 rgba(31,38,135,0.18);
+            border-radius: 24px;
+            max-width: 400px;
+            width: 100%;
+            margin: 2rem auto;
+            padding: 2.5rem 2rem 2rem 2rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            position: relative;
+        }
+        .auth-logo {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: #6c47ff;
+            letter-spacing: 2px;
+            margin-bottom: 1.2rem;
+            text-shadow: 0 2px 8px #ff90e8;
+        }
+        .auth-form input {
+            padding: 0.9rem 1.2rem;
+            border: 1.5px solid #6c47ff;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-family: inherit;
+            background: #fff;
+            outline: none;
+            transition: border 0.2s;
+            margin-bottom: 1rem;
+        }
+        .auth-form input:focus {
+            border: 2px solid #ff90e8;
+        }
+        .auth-form button {
+            background: #6c47ff;
+            color: #fff;
+            border: none;
+            border-radius: 30px;
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+            margin-top: 0.5rem;
+        }
+        .auth-form button:hover {
+            background: #00e6d8;
+            color: #fff;
+            transform: scale(1.04);
+        }
+        .auth-switch {
+            color: #6c47ff;
+            cursor: pointer;
+            text-decoration: underline;
+            font-size: 1rem;
+            margin-top: 1rem;
+        }
+        .auth-error {
+            color: #ff4d6d;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            min-height: 1.2em;
+        }
+        .trial-note {
+            margin-top:1.5rem;
+            color:#666;
+        }
+        .back-link {
+            display:block;
+            margin-top:2rem;
+            color:#6c47ff;
+            text-decoration:underline;
+        }
+    </style>
 </head>
 <body>
     <div class="auth-page">
+        <div class="auth-logo">SkillBite</div>
         <h2>Join SkillBite</h2>
         <form class="auth-form">
             <input type="text" placeholder="Full Name" required>
             <input type="email" placeholder="Email Address" required>
             <input type="password" placeholder="Password" required>
+            <div class="auth-error" id="auth-error"></div>
             <button type="submit">Sign Up</button>
         </form>
         <div class="auth-switch" onclick="switchAuth()">Already have an account? <span>Sign In</span></div>
-        <p style="margin-top:1.5rem;color:#666;">Enjoy a <strong>free trial</strong> for 7 days. Upgrade to SkillBite Plus+ anytime!</p>
-        <a href="https://malicious7.github.io/skillbite/index.html" style="display:block;margin-top:2rem;color:var(--primary);text-decoration:underline;">&larr; Back to Home</a>
+        <p class="trial-note">Enjoy a <strong>free trial</strong> for 7 days. Upgrade to SkillBite Plus+ anytime!</p>
+        <a href="https://malicious7.github.io/skillbite/index.html" class="back-link">&larr; Back to Home</a>
     </div>
     <script>
+    let isSignUp = true;
     function switchAuth() {
         const form = document.querySelector('.auth-form');
         const h2 = document.querySelector('.auth-page h2');
         const btn = form.querySelector('button');
         const switcher = document.querySelector('.auth-switch');
-        if (btn.textContent === 'Sign Up') {
+        const nameInput = form.querySelector('input[type="text"]');
+        const trialNote = document.querySelector('.trial-note');
+        document.getElementById('auth-error').textContent = '';
+        if (isSignUp) {
             h2.textContent = 'Sign In to SkillBite';
             btn.textContent = 'Sign In';
-            form.querySelector('input[type="text"]').style.display = 'none';
+            nameInput.style.display = 'none';
             switcher.innerHTML = "Don't have an account? <span>Sign Up</span>";
+            trialNote.style.display = 'none';
+            isSignUp = false;
         } else {
             h2.textContent = 'Join SkillBite';
             btn.textContent = 'Sign Up';
-            form.querySelector('input[type="text"]').style.display = '';
+            nameInput.style.display = '';
             switcher.innerHTML = "Already have an account? <span>Sign In</span>";
+            trialNote.style.display = '';
+            isSignUp = true;
         }
     }
     </script>
@@ -67,19 +161,31 @@
       const name = this.querySelector('input[type="text"]').value;
       const email = this.querySelector('input[type="email"]').value;
       const password = this.querySelector('input[type="password"]').value;
-      try {
-        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-        // Store extra info in Firestore
-        await db.collection('users').doc(userCredential.user.uid).set({
-          name: name,
-          email: email,
-          signupDate: new Date(),
-          trialEnds: new Date(Date.now() + 7*24*60*60*1000) // 7 days from now
-        });
-        alert('Registration successful! Welcome to SkillBite.');
-        window.location.href = 'https://malicious7.github.io/skillbite/index.html';
-      } catch (error) {
-        alert(error.message);
+      const errorDiv = document.getElementById('auth-error');
+      errorDiv.textContent = '';
+      if (isSignUp) {
+        try {
+          const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+          // Store extra info in Firestore
+          await db.collection('users').doc(userCredential.user.uid).set({
+            name: name,
+            email: email,
+            signupDate: new Date(),
+            trialEnds: new Date(Date.now() + 7*24*60*60*1000) // 7 days from now
+          });
+          alert('Registration successful! Welcome to SkillBite.');
+          window.location.href = 'https://malicious7.github.io/skillbite/index.html';
+        } catch (error) {
+          errorDiv.textContent = error.message;
+        }
+      } else {
+        try {
+          await auth.signInWithEmailAndPassword(email, password);
+          alert('Sign in successful!');
+          window.location.href = 'https://malicious7.github.io/skillbite/index.html';
+        } catch (error) {
+          errorDiv.textContent = error.message;
+        }
       }
     });
     </script>
