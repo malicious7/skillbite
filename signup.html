@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up | SkillBite</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="auth-page">
+        <h2>Join SkillBite</h2>
+        <form class="auth-form">
+            <input type="text" placeholder="Full Name" required>
+            <input type="email" placeholder="Email Address" required>
+            <input type="password" placeholder="Password" required>
+            <button type="submit">Sign Up</button>
+        </form>
+        <div class="auth-switch" onclick="switchAuth()">Already have an account? <span>Sign In</span></div>
+        <p style="margin-top:1.5rem;color:#666;">Enjoy a <strong>free trial</strong> for 7 days. Upgrade to SkillBite Plus+ anytime!</p>
+        <a href="https://malicious7.github.io/skillbite/index.html" style="display:block;margin-top:2rem;color:var(--primary);text-decoration:underline;">&larr; Back to Home</a>
+    </div>
+    <script>
+    function switchAuth() {
+        const form = document.querySelector('.auth-form');
+        const h2 = document.querySelector('.auth-page h2');
+        const btn = form.querySelector('button');
+        const switcher = document.querySelector('.auth-switch');
+        if (btn.textContent === 'Sign Up') {
+            h2.textContent = 'Sign In to SkillBite';
+            btn.textContent = 'Sign In';
+            form.querySelector('input[type="text"]').style.display = 'none';
+            switcher.innerHTML = "Don't have an account? <span>Sign Up</span>";
+        } else {
+            h2.textContent = 'Join SkillBite';
+            btn.textContent = 'Sign Up';
+            form.querySelector('input[type="text"]').style.display = '';
+            switcher.innerHTML = "Already have an account? <span>Sign In</span>";
+        }
+    }
+    </script>
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <!-- Firebase Auth -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <!-- Firestore -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script>
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyA3AAn_23IcUV__QifOrEeJ2BFxV9wAuUs",
+    authDomain: "skillbite-d95d8.firebaseapp.com",
+    projectId: "skillbite-d95d8",
+    storageBucket: "skillbite-d95d8.firebasestorage.app",
+    messagingSenderId: "1005321668249",
+    appId: "1:1005321668249:web:58ce4c161c1b84b9e19a08",
+    measurementId: "G-X1Z213CF3J"
+  };
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+    </script>
+    <script>
+    document.querySelector('.auth-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const name = this.querySelector('input[type="text"]').value;
+      const email = this.querySelector('input[type="email"]').value;
+      const password = this.querySelector('input[type="password"]').value;
+      try {
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        // Store extra info in Firestore
+        await db.collection('users').doc(userCredential.user.uid).set({
+          name: name,
+          email: email,
+          signupDate: new Date(),
+          trialEnds: new Date(Date.now() + 7*24*60*60*1000) // 7 days from now
+        });
+        alert('Registration successful! Welcome to SkillBite.');
+        window.location.href = 'https://malicious7.github.io/skillbite/index.html';
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+    </script>
+</body>
+</html> 
